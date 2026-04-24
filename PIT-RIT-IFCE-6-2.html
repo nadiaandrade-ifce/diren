@@ -83,6 +83,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g1);box-
 <button class="btn" onclick="pdfRIT()">&#128196; RIT (PDF)</button>
 <button class="btn btn-s" onclick="salvar()">Salvar</button>
 <button class="btn btn-s" onclick="document.getElementById('ij').click()">Abrir</button>
+<button class="btn btn-s" onclick="publicarTodos()" title="Publica todos os horários (aulas + atendimentos) para a consulta pública dos alunos" style="background:#1565C0;color:#fff;border-color:#1565C0">&#128225; Publicar</button>
 <input type="file" id="ij" accept=".json" style="display:none" onchange="abrirJ(event)">
 </div></div></div>
 
@@ -415,8 +416,26 @@ function renderG(){
 }
 function opA(d,h){mSlot={d:d,h:h};$("mi").textContent=d+", "+h;$("md").classList.remove("hd")}
 function fM(){$("md").classList.add("hd");mSlot=null}
-function confA(){if(!mSlot)return;var p=mSlot.h.split("-");E.grade[mSlot.d].push({i:p[0],f:p[1],a:"Atendimento a alunos",tp:"atendimento",t:""});fM();renderG()}
-function rmA(d,h){var p=h.split("-");E.grade[d]=E.grade[d].filter(function(b){return!(b.i===p[0]&&b.f===p[1]&&b.tp==="atendimento")});renderG()}
+function confA(){if(!mSlot)return;var p=mSlot.h.split("-");E.grade[mSlot.d].push({i:p[0],f:p[1],a:"Atendimento a alunos",tp:"atendimento",t:""});fM();renderG();syncGrade()}
+function rmA(d,h){var p=h.split("-");E.grade[d]=E.grade[d].filter(function(b){return!(b.i===p[0]&&b.f===p[1]&&b.tp==="atendimento")});renderG();syncGrade()}
+
+// === SINCRONIZAÇÃO AUTOMÁTICA COM CONSULTA PÚBLICA ===
+function syncGrade(){
+  try{
+    // Lê dados existentes ou cria novo objeto
+    var pub=JSON.parse(localStorage.getItem("ifce_horarios_pub")||"{}");
+    if(!E.n)return; // sem professor selecionado
+    // Atualiza apenas o professor atual no objeto compartilhado
+    pub[E.n]={grade:E.grade,disciplinas:E.au.disc.map(function(d){return{nome:d.n,turma:d.t,ch:d.c}}),total_aulas:E.au.t,atualizado:new Date().toISOString()};
+    localStorage.setItem("ifce_horarios_pub",JSON.stringify(pub));
+    // Feedback visual discreto
+    var sr=$("sr");if(sr){sr.title="Sincronizado: "+new Date().toLocaleTimeString()}
+  }catch(e){console.log("Sync localStorage:",e)}
+}
+
+// Sincroniza ao selecionar professor
+var _origOnProf=onProf;
+onProf=function(){_origOnProf();syncGrade()}
 
 function aba(a){
   document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});
@@ -527,6 +546,31 @@ function pdfRIT(){
   var cW=(W-2*m)/3;doc.line(m+5,y,m+cW-5,y);doc.line(m+cW+5,y,m+2*cW-5,y);doc.line(m+2*cW+5,y,W-m-5,y);y+=4;
   doc.setFontSize(8);doc.text("Professor(a)",m+cW/2,y,{align:"center"});doc.text("Coord. de Curso",m+cW+cW/2,y,{align:"center"});doc.text("Chefe Dep./Dir. Ensino",m+2*cW+cW/2,y,{align:"center"});
   doc.save("RIT_"+(E.n||"docente").replace(/\s+/g,"_")+"_"+E.s+".pdf");
+}
+
+// Publica TODOS os professores do DB para a consulta pública
+function publicarTodos(){
+  try{
+    var pub={};
+    var names=Object.keys(DB);
+    names.forEach(function(nm){
+      var d=DB[nm];
+      pub[nm]={
+        grade:d.grade,
+        disciplinas:d.disciplinas,
+        total_aulas:d.total_aulas,
+        atualizado:new Date().toISOString()
+      };
+    });
+    // Se o professor atual tem atendimentos editados, sobrescreve
+    if(E.n&&DB[E.n]){
+      pub[E.n].grade=E.grade;
+      pub[E.n].disciplinas=E.au.disc.map(function(d){return{nome:d.n,turma:d.t,ch:d.c}});
+      pub[E.n].total_aulas=E.au.t;
+    }
+    localStorage.setItem("ifce_horarios_pub",JSON.stringify(pub));
+    alert("Horários publicados com sucesso!\n\n"+names.length+" docentes sincronizados.\n\nA página de consulta pública (se aberta no mesmo navegador) receberá os dados automaticamente.");
+  }catch(e){alert("Erro ao publicar: "+e.message)}
 }
 
 // RIT Grade Table - stores editable cells
