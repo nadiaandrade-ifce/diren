@@ -81,7 +81,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g1);box-
 <button class="btn btn-p" onclick="pdfPIT()">&#128196; PIT (PDF)</button>
 <button class="btn" onclick="gerarRIT()">Gerar RIT</button>
 <button class="btn" onclick="pdfRIT()">&#128196; RIT (PDF)</button>
-<button class="btn btn-s" onclick="salvar()">Salvar</button>
+
 <button class="btn btn-s" onclick="document.getElementById('ij').click()">Abrir</button>
 <button class="btn btn-s" onclick="publicarTodos()" title="Publica todos os horários (aulas + atendimentos) para a consulta pública dos alunos" style="background:#1565C0;color:#fff;border-color:#1565C0">&#128225; Publicar</button>
 <span id="syncIndicator" style="font-size:11px;margin-left:4px"></span>
@@ -101,7 +101,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g1);box-
 
 <div id="a-id">
 <div class="card"><div class="ct">Selecione o Professor</div><div class="cs">Dados carregados automaticamente do banco de horários 2026.1</div>
-<div class="ps"><select id="psel" onchange="onProf()"><option value="">— Selecione um professor —</option></select></div></div>
+<div class="ps"><input type="text" id="psearch" placeholder="Digite o nome do professor..." oninput="filtrarProf()" autocomplete="off" style="width:100%;padding:10px 12px;border:2px solid var(--gbg2);border-radius:8px;font-size:14px;font-family:inherit"><div id="presults" style="max-height:200px;overflow-y:auto;display:none;border:1px solid var(--gbg2);border-radius:0 0 8px 8px;background:#fff;margin-top:-2px"></div><input type="hidden" id="psel"></div></div>
 <div class="card"><div class="ct">Identificação do Servidor</div><div class="cs">Dados do cabeçalho PIT/RIT</div>
 <div class="fg">
 <div><label>Semestre</label><input type="text" id="fs" value="2026.1"></div>
@@ -145,10 +145,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g1);box-
 </div>
 
 <div id="a-ou" class="hd">
-<div class="card"><div class="ct">6. Pesquisa aplicada</div><div class="cs" id="pss">Teto: 18h</div><div id="pl"></div><button class="btn btn-s" onclick="addI('pesquisa')">+ Item</button><div class="sb info" style="margin-top:10px"><span>Subtotal</span><span class="b b-i" id="pt2">0h</span></div></div>
-<div class="card"><div class="ct">7. Extensão</div><div class="cs" id="exs">Teto: 18h</div><div id="xl"></div><button class="btn btn-s" onclick="addI('extensao')">+ Item</button><div class="sb info" style="margin-top:10px"><span>Subtotal</span><span class="b b-i" id="xt2">0h</span></div></div>
-<div class="card" id="cg"><div class="ct">8. Gestão</div><div class="cs" id="gs2">Teto: 18h</div><div id="gl"></div><button class="btn btn-s" onclick="addI('gestao')">+ Item</button><div class="sb info" style="margin-top:10px"><span>Subtotal</span><span class="b b-i" id="gt3">0h</span></div></div>
-<div class="card"><div class="ct">9. Comissões / Representação</div><div class="cs" id="cs3">Teto: 18h</div><div id="cl2"></div><button class="btn btn-s" onclick="addI('comissoes')">+ Item</button><div class="sb info" style="margin-top:10px"><span>Subtotal</span><span class="b b-i" id="ct3">0h</span></div></div>
+<div class="card"><div class="ct">3. Pesquisa aplicada (Res. 39/2016, Quadro 3)</div><div class="cs" id="pss">Teto: 18h</div><div id="pl"></div><button class="btn btn-s" onclick="addI('pesquisa')">+ Item</button><div class="sb info" style="margin-top:10px"><span>Subtotal</span><span class="b b-i" id="pt2">0h</span></div></div>
+<div class="card"><div class="ct">4. Extensão (Res. 39/2016, Quadro 4)</div><div class="cs" id="exs">Teto: 18h</div><div id="xl"></div><button class="btn btn-s" onclick="addI('extensao')">+ Item</button><div class="sb info" style="margin-top:10px"><span>Subtotal</span><span class="b b-i" id="xt2">0h</span></div></div>
+<div class="card" id="cg"><div class="ct">5. Gestão (Res. 39/2016, Quadro 5)</div><div class="cs" id="gs2">Teto: 18h</div><div id="gl"></div><button class="btn btn-s" onclick="addI('gestao')">+ Item</button><div class="sb info" style="margin-top:10px"><span>Subtotal</span><span class="b b-i" id="gt3">0h</span></div></div>
+<div class="card"><div class="ct">6. Comissões / Representação (Res. 39/2016, Quadro 6)</div><div class="cs" id="cs3">Teto: 18h</div><div id="cl2"></div><button class="btn btn-s" onclick="addI('comissoes')">+ Item</button><div class="sb info" style="margin-top:10px"><span>Subtotal</span><span class="b b-i" id="ct3">0h</span></div></div>
 </div>
 
 <div id="a-gr" class="hd">
@@ -218,27 +218,42 @@ const SLOTS=[
 {id:"CN",l:"C Noite",h:"20:30-21:20"},{id:"DN",l:"D Noite",h:"21:20-22:00"}];
 
 const LIM={pesquisa:[
-{n:"Coord. projeto c/ fomento IFCE",p:4,mx:3},{n:"Coord. projeto c/ captação externa",p:6,mx:2},
-{n:"Participação em equipe de projeto",p:3,mx:2},{n:"Orientação especialização/Co-orient.",p:2,mx:4},
-{n:"Bolsista produtividade PQ/DT CNPq",p:16,mx:1},{n:"Docente COLABORADOR pós-grad.",p:8,mx:1},
-{n:"Docente PERMANENTE pós-grad.",p:16,mx:1}],
+{n:"3.1 Coord. projeto pesquisa c/ fomento IFCE ou sem recursos (PRPI)",p:4,mx:3},
+{n:"3.2 Coord. projeto pesquisa c/ captação recursos externos (PRPI)",p:6,mx:2},
+{n:"3.3 Participação equipe projeto pesquisa aplicada/desenv. (PRPI)",p:3,mx:2},
+{n:"3.4 Orientação especialização / Co-orient. mestrado ou doutorado",p:2,mx:4},
+{n:"3.5 Bolsista produtividade PQ/DT CNPq",p:16,mx:1},
+{n:"3.6 Docente COLABORADOR pós-graduação stricto sensu",p:8,mx:1},
+{n:"3.7 Docente PERMANENTE pós-graduação stricto sensu",p:16,mx:1}],
 extensao:[
-{n:"Coord. projeto/programa c/ fomento IFCE",p:4,mx:3},{n:"Coord. projeto/programa c/ captação ext.",p:6,mx:2},
-{n:"Participação equipe projeto/programa",p:3,mx:2},{n:"Coord. incubadoras",p:16,mx:1},
-{n:"Coordenação NAPNE/NEABI",p:5,mx:1},{n:"Participação NAPNE/NEABI",p:3,mx:1},
-{n:"Cursos FIC (horas)",p:0.05,mx:240},{n:"Preparação/Planejamento FIC",p:0.05,mx:120},
-{n:"Planejamento/organização eventos",p:1,mx:2}],
+{n:"4.1 Coord. projeto/programa extensão c/ fomento IFCE ou sem recursos (PROEXT)",p:4,mx:3},
+{n:"4.2 Coord. projeto/programa extensão c/ captação recursos externos (PROEXT)",p:6,mx:2},
+{n:"4.3 Participação equipe projeto/programa extensão (PROEXT), exceto FIC",p:3,mx:2},
+{n:"4.4 Coordenação de incubadoras de empresas",p:16,mx:1},
+{n:"4.5 Coordenação dos NAPNEs ou NEABIs",p:5,mx:1},
+{n:"4.6 Participação como membro dos NAPNEs ou NEABIs",p:3,mx:1},
+{n:"4.7 Cursos FIC — horas totais do curso",p:0.05,mx:240},
+{n:"4.8 Preparação + Planejamento dos cursos FIC",p:0.05,mx:120},
+{n:"4.9 Planejamento e organização de eventos de extensão",p:1,mx:2}],
 gestao:[
-{n:"Coordenador de Curso",p:18,mx:1},{n:"Coordenador de Setor",p:18,mx:1},
-{n:"Chefe de Departamento",p:18,mx:1},{n:"Diretor de Área/Setor",p:18,mx:1},
-{n:"Assessor da Reitoria",p:18,mx:1},{n:"Coord. Implantação Campus",p:18,mx:1},
-{n:"Assist. Pró-Reitoria/Chefe Gabinete",p:18,mx:1},{n:"Coord. programa institucional",p:18,mx:1}],
+{n:"5.1 Coordenador de Curso",p:18,mx:1},
+{n:"5.2 Coordenador de Setor",p:18,mx:1},
+{n:"5.3 Chefe de Departamento",p:18,mx:1},
+{n:"5.4 Diretor de Área/Setor",p:18,mx:1},
+{n:"5.5 Assessor da Reitoria",p:18,mx:1},
+{n:"5.6 Coordenador de implantação de Campus",p:18,mx:1},
+{n:"5.7 Assistente de Pró-Reitoria ou Chefe de Gabinete de Campus",p:18,mx:1},
+{n:"5.8 Coord. programa institucional: ensino, pesquisa ou extensão",p:18,mx:1}],
 comissoes:[
-{n:"Conselhos/comissões permanentes",p:3,mx:1},{n:"CPA/CPPD (Central)",p:8,mx:1},
-{n:"CPA/CPPD (Local)",p:4,mx:1},{n:"Conselhos/comitês externos",p:1,mx:1},
-{n:"Colegiado de Cursos",p:1,mx:2},{n:"NDE",p:1,mx:2},
-{n:"Comissão PAD",p:4,mx:1},{n:"Direção Sindical (titular)",p:4,mx:1},
-{n:"Fiscalização de contrato",p:1,mx:2}]};
+{n:"6.1 Conselhos, comissões ou comitês permanentes institucionais",p:3,mx:1},
+{n:"6.2 CPA / CPPD (Central)",p:8,mx:1},
+{n:"6.3 CPA / CPPD (Local)",p:4,mx:1},
+{n:"6.4 Conselhos ou comitês permanentes externos",p:1,mx:1},
+{n:"6.5 Colegiado de Cursos",p:1,mx:2},
+{n:"6.6 Núcleo Docente Estruturante (NDE)",p:1,mx:2},
+{n:"6.7 Comissão de Processo Administrativo Disciplinar",p:4,mx:1},
+{n:"6.8 Participação em Direção Sindical como titular",p:4,mx:1},
+{n:"6.9 Fiscalização de contrato",p:1,mx:2}]};
 
 const ELMAP={pesquisa:"pl",extensao:"xl",gestao:"gl",comissoes:"cl2"};
 
@@ -255,14 +270,27 @@ const nv=id=>Number($(id).value)||0;
 const tv=id=>$(id).value||"";
 function esc(s){return s==null?"":String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 
+function remAc(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
+var NOMES=[];
 function initSel(){
-  var s=$("psel");
-  var names=Object.keys(DB).sort(function(a,b){return a.localeCompare(b,"pt")});
-  for(var i=0;i<names.length;i++){
-    var o=document.createElement("option");
-    o.value=names[i];o.textContent=names[i];s.appendChild(o);
-  }
+  NOMES=Object.keys(DB).sort(function(a,b){return a.localeCompare(b,"pt")});
 }
+function filtrarProf(){
+  var q=remAc($("psearch").value.trim());
+  var box=$("presults");
+  if(q.length<1){box.style.display="none";return}
+  var matches=NOMES.filter(function(n){return remAc(n).indexOf(q)>=0}).slice(0,10);
+  if(matches.length===0){box.innerHTML='<div style="padding:10px;color:#999;font-size:13px">Nenhum docente encontrado</div>';box.style.display="block";return}
+  box.innerHTML=matches.map(function(nm){
+    return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6" onmouseover="this.style.background=\'#f0fdf4\'" onmouseout="this.style.background=\'#fff\'" onclick="selecionarProf(\''+nm.replace(/'/g,"\\'")+'\')">'+ nm+'</div>';
+  }).join("");
+  box.style.display="block";
+}
+function selecionarProf(nm){
+  $("psearch").value=nm;$("psel").value=nm;$("presults").style.display="none";onProf();
+}
+// Fechar resultados ao clicar fora
+document.addEventListener("click",function(e){if(!e.target.closest(".ps"))$("presults").style.display="none"});
 
 function onProf(){
   var nm=$("psel").value;if(!nm)return;
@@ -278,7 +306,19 @@ function onProf(){
 
 function applyE(s){
   E=JSON.parse(JSON.stringify(s));
+  // Backwards compat: ensure qty exists in pesquisa/extensao/gestao/comissoes
+  ["pesquisa","extensao","gestao","comissoes"].forEach(function(t){
+    (E[t]||[]).forEach(function(it){
+      if(it.qty===undefined&&it.ch){
+        var opts=LIM[t]||[];
+        var selOpt=opts.find(function(o){return o.n===it.tipo});
+        if(selOpt&&selOpt.p>0)it.qty=Math.round(it.ch/selOpt.p);
+        else it.qty=0;
+      }
+    });
+  });
   $("fs").value=E.s;$("fn").value=E.n;$("fc").value=E.c;$("fd").value=E.d;$("fi").value=E.i;$("fv").value=E.v;$("fr").value=E.r;
+  $("psearch").value=E.n||"";$("psel").value=E.n||"";
   $("at").value=E.au.t;$("ag").value=E.au.g;$("af").value=E.au.f;
   $("ot").value=E.ori.t;$("oe").value=E.ori.e;$("oer").value=E.ori.er;$("om").value=E.ori.m;$("opb").value=E.ori.p;
   $("elab").value=E.ex.l;$("eprj").value=E.ex.p;
@@ -372,26 +412,42 @@ function renderI(tipo){
   var opts=LIM[tipo]||[];
   (E[tipo]||[]).forEach(function(it,idx){
     var div=document.createElement("div");div.className="ir";
-    var sel=document.createElement("select");
+    var sel=document.createElement("select");sel.style.cssText="flex:2;min-width:180px";
     var o0=document.createElement("option");o0.value="";o0.textContent="Selecione...";sel.appendChild(o0);
     opts.forEach(function(op){
-      var o=document.createElement("option");o.value=op.n;o.textContent=op.n+" (p:"+op.p+" max:"+op.mx+")";
+      var o=document.createElement("option");o.value=op.n;
+      o.textContent=op.n+" (Peso:"+op.p+" · Max:"+op.mx+")";
       if(op.n===it.tipo)o.selected=true;sel.appendChild(o);
     });
-    sel.onchange=function(){E[tipo][idx].tipo=this.value;renderI(tipo);calc()};
-    var inp=document.createElement("input");inp.type="text";inp.value=it.detalhe||"";inp.placeholder="Detalhe";
+    sel.onchange=function(){E[tipo][idx].tipo=this.value;E[tipo][idx].qty=0;E[tipo][idx].ch=0;renderI(tipo);calc()};
+    var inp=document.createElement("input");inp.type="text";inp.value=it.detalhe||"";inp.placeholder="Detalhe";inp.style.cssText="flex:1;min-width:100px";
     inp.onchange=function(){E[tipo][idx].detalhe=this.value};
     var selOpt=opts.find(function(o){return o.n===it.tipo});
-    var maxCH=selOpt?r1(selOpt.p*selOpt.mx):18;
-    var num=document.createElement("input");num.type="number";num.value=it.ch;num.min="0";num.max=String(maxCH);num.step="0.5";
-    num.onchange=function(){E[tipo][idx].ch=Number(this.value);calc()};
+    var maxQty=selOpt?selOpt.mx:1;
+    var peso=selOpt?selOpt.p:1;
+    // Quantity input (step=1, same as ensino)
+    var qtyWrap=document.createElement("div");qtyWrap.style.cssText="display:flex;align-items:center;gap:4px";
+    var qtyLabel=document.createElement("span");qtyLabel.textContent="Qtd:";qtyLabel.style.cssText="font-size:11px;color:#666;white-space:nowrap";
+    var num=document.createElement("input");num.type="number";num.value=it.qty||0;num.min="0";num.max=String(maxQty);num.step="1";
+    num.style.cssText="width:60px";
+    num.onchange=function(){
+      var q=Math.min(Number(this.value)||0,maxQty);
+      E[tipo][idx].qty=q;
+      E[tipo][idx].ch=r1(q*peso);
+      renderI(tipo);calc();
+    };
+    // CH display (auto-calculated, read-only)
+    var chDisp=document.createElement("span");
+    chDisp.className="b b-i";chDisp.style.cssText="min-width:40px;text-align:center;font-size:12px";
+    chDisp.textContent=r1((it.qty||0)*peso)+"h";
+    qtyWrap.appendChild(qtyLabel);qtyWrap.appendChild(num);qtyWrap.appendChild(chDisp);
     var bt=document.createElement("button");bt.textContent="\u00d7";bt.style.cssText="padding:5px 7px;color:#C62828;border:1px solid #FFCDD2;background:#fff;border-radius:8px;cursor:pointer;font-size:13px";
     bt.onclick=function(){E[tipo].splice(idx,1);renderI(tipo);calc()};
-    div.appendChild(sel);div.appendChild(inp);div.appendChild(num);div.appendChild(bt);
+    div.appendChild(sel);div.appendChild(inp);div.appendChild(qtyWrap);div.appendChild(bt);
     l.appendChild(div);
   });
 }
-function addI(t){E[t].push({tipo:"",detalhe:"",ch:0});renderI(t);calc()}
+function addI(t){E[t].push({tipo:"",detalhe:"",ch:0,qty:0});renderI(t);calc()}
 
 // GRADE
 function renderLeg(){$("leg").innerHTML='<div class="li"><div class="ld" style="background:#1565C0"></div><span>Aula</span></div><div class="li"><div class="ld" style="background:#43A047"></div><span>Atendimento a alunos</span></div>'}
@@ -511,10 +567,10 @@ function pdfPIT(){
   tr(["3. APOIO (fixo)","2h"],[150,30],{b:1,f:[200,230,201]});
   tr(["4. ORIENTAÇÃO",v.oT+"h"],[150,30],{b:1,f:[200,230,201]});
   tr(["5. EXTRACURRICULAR",v.eT+"h"],[150,30],{b:1,f:[200,230,201]});
-  tr(["6. PESQUISA",v.pT+"h"],[150,30],{b:1,f:[200,230,201]});E.pesquisa.forEach(function(x){tr([x.tipo+" - "+x.detalhe,x.ch+"h"],[150,30])});
-  tr(["7. EXTENSÃO",v.xT+"h"],[150,30],{b:1,f:[200,230,201]});E.extensao.forEach(function(x){tr([x.tipo+" - "+x.detalhe,x.ch+"h"],[150,30])});
-  if(E.r!=="20"){tr(["8. GESTÃO",v.gT+"h"],[150,30],{b:1,f:[200,230,201]});E.gestao.forEach(function(x){tr([x.tipo+" - "+x.detalhe,x.ch+"h"],[150,30])})}
-  tr(["9. COMISSÕES",v.cT+"h"],[150,30],{b:1,f:[200,230,201]});E.comissoes.forEach(function(x){tr([x.tipo+" - "+x.detalhe,x.ch+"h"],[150,30])});
+  tr(["3. PESQUISA APLICADA",v.pT+"h"],[150,30],{b:1,f:[200,230,201]});E.pesquisa.forEach(function(x){tr([x.tipo+" - "+x.detalhe,x.ch+"h"],[150,30])});
+  tr(["4. EXTENSÃO",v.xT+"h"],[150,30],{b:1,f:[200,230,201]});E.extensao.forEach(function(x){tr([x.tipo+" - "+x.detalhe,x.ch+"h"],[150,30])});
+  if(E.r!=="20"){tr(["5. GESTÃO",v.gT+"h"],[150,30],{b:1,f:[200,230,201]});E.gestao.forEach(function(x){tr([x.tipo+" - "+x.detalhe,x.ch+"h"],[150,30])})}
+  tr(["6. COMISSÕES/REPRESENTAÇÃO",v.cT+"h"],[150,30],{b:1,f:[200,230,201]});E.comissoes.forEach(function(x){tr([x.tipo+" - "+x.detalhe,x.ch+"h"],[150,30])});
   tr(["TOTAL",v.tot+"h"],[150,30],{b:1,f:[27,94,32],tc:[255,255,255]});
   cp(30);y+=10;doc.setFont("helvetica","normal");doc.setFontSize(9);
   doc.text("______________________________, ______ de _____________________ de ________.",W/2,y,{align:"center"});y+=14;
@@ -663,17 +719,61 @@ function renderRitGrade(){
   h+="</tbody>";tb.innerHTML=h;
 }
 
+var ritModalKey=null;
+var RIT_OPCOES=[
+  {txt:"Aula",tipo:"aula",cor:"#1565C0"},
+  {txt:"Atendimento a alunos",tipo:"atendimento",cor:"#43A047"},
+  {txt:"Preparação + Planejamento",tipo:"manual",cor:"#7B1FA2"},
+  {txt:"Apoio ao Ensino",tipo:"manual",cor:"#00838F"},
+  {txt:"Pesquisa aplicada",tipo:"manual",cor:"#E65100"},
+  {txt:"Extensão",tipo:"manual",cor:"#AD1457"},
+  {txt:"Coordenação",tipo:"manual",cor:"#4527A0"},
+  {txt:"Gestão institucional",tipo:"manual",cor:"#1565C0"},
+  {txt:"Comissões/Representação",tipo:"manual",cor:"#558B2F"},
+  {txt:"Orientação TCC/Estágio",tipo:"manual",cor:"#00695C"},
+  {txt:"Capacitação",tipo:"manual",cor:"#F9A825"},
+];
+
 function editRitCell(key){
-  var cur=ritGradeData[key];
-  var val=prompt("Atividade para este horário:\n(deixe vazio para limpar)",cur?cur.text:"");
-  if(val===null)return;
-  if(val.trim()===""){delete ritGradeData[key]}
-  else{ritGradeData[key]={text:val.trim(),tipo:cur?cur.tipo:"manual"}}
-  renderRitGrade();
+  ritModalKey=key;
+  var box=$("ritModalBtns");
+  box.innerHTML=RIT_OPCOES.map(function(op){
+    return '<button onclick="ritModalSelect(\''+op.txt+'\')" style="display:block;width:100%;padding:10px 14px;margin-bottom:6px;border:2px solid '+op.cor+';background:#fff;border-radius:8px;cursor:pointer;font-size:13px;text-align:left;color:#333;transition:background .15s" onmouseover="this.style.background=\''+op.cor+'1a\'" onmouseout="this.style.background=\'#fff\'"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+op.cor+';margin-right:8px;vertical-align:middle"></span>'+op.txt+'</button>';
+  }).join("")+'<button onclick="ritModalCustom()" style="display:block;width:100%;padding:10px 14px;margin-bottom:6px;border:2px dashed #999;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;text-align:left;color:#666" onmouseover="this.style.background=\'#f5f5f5\'" onmouseout="this.style.background=\'#fff\'">✏️ Outro (digitar)</button>';
+  var m=$("ritModal");m.style.display="flex";
 }
+
+function ritModalSelect(txt){
+  if(!ritModalKey)return;
+  if(txt==="__limpar__"){delete ritGradeData[ritModalKey]}
+  else{
+    var op=RIT_OPCOES.find(function(o){return o.txt===txt});
+    ritGradeData[ritModalKey]={text:txt,tipo:op?op.tipo:"manual"};
+  }
+  fecharRitModal();renderRitGrade();
+}
+
+function ritModalCustom(){
+  var txt=prompt("Digite a atividade:");
+  if(!txt||!txt.trim())return;
+  ritGradeData[ritModalKey]={text:txt.trim(),tipo:"manual"};
+  fecharRitModal();renderRitGrade();
+}
+
+function fecharRitModal(){$("ritModal").style.display="none";ritModalKey=null}
 
 window.addEventListener("DOMContentLoaded",function(){initSel();renderLeg();calc()});
 
 </script>
+<div id="ritModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center">
+<div style="background:#fff;border-radius:12px;max-width:400px;width:90%;max-height:80vh;overflow-y:auto;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+<div style="font-size:14px;font-weight:700;color:#1B5E20;margin-bottom:14px">Selecione a atividade para este horário:</div>
+<div id="ritModalBtns"></div>
+<div style="margin-top:12px;display:flex;gap:8px">
+<button onclick="ritModalSelect('__limpar__')" style="flex:1;padding:10px;border:1px solid #FFCDD2;background:#FFF8E1;border-radius:8px;cursor:pointer;font-size:13px;color:#C62828">Limpar</button>
+<button onclick="fecharRitModal()" style="flex:1;padding:10px;border:1px solid #ccc;background:#f5f5f5;border-radius:8px;cursor:pointer;font-size:13px">Cancelar</button>
+</div>
+</div>
+</div>
 </body>
 </html>
