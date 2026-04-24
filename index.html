@@ -207,12 +207,13 @@ const searchWrap=document.getElementById("searchWrap");
 const gradeView=document.getElementById("gradeView");
 
 function esc(s){return s==null?"":String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function remAc(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
 function initials(n){var p=n.split(" ");return(p[0]?p[0][0]:"")+(p.length>1?p[p.length-1][0]:"") }
 
 input.addEventListener("input",function(){
-  var q=this.value.trim().toLowerCase();
-  if(q.length<2){resultsEl.innerHTML="";return}
-  var matches=names.filter(function(n){return n.toLowerCase().indexOf(q)>=0}).slice(0,8);
+  var q=remAc(this.value.trim());
+  if(q.length<1){resultsEl.innerHTML="";return}
+  var matches=names.filter(function(n){return remAc(n).indexOf(q)>=0}).slice(0,8);
   if(matches.length===0){
     resultsEl.innerHTML='<div class="empty" style="padding:20px"><div class="empty-txt">Nenhum docente encontrado</div></div>';
     return;
