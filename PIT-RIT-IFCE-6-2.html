@@ -307,9 +307,7 @@ function filtrarProf(){
   box.style.display="block";
 }
 function selecionarProf(nm){
-  $("psearch").value=nm;$("psel").value=nm;$("presults").style.display="none";
-  profSelecionado=true;
-  onProf();
+  $("psearch").value=nm;$("psel").value=nm;$("presults").style.display="none";profSelecionado=true;onProf();
 }
 // Fechar resultados ao clicar fora
 document.addEventListener("click",function(e){if(!e.target.closest(".ps"))$("presults").style.display="none"});
@@ -542,10 +540,7 @@ onProf=function(){_origOnProf();syncGradeFirebase()}
 
 var profSelecionado=false;
 function aba(a){
-  if(!profSelecionado&&a!=="id"){
-    alert("Selecione seu nome na aba Identificação primeiro.\n\nDigite seu nome no campo de busca e clique sobre ele na lista.");
-    return;
-  }
+  if(!profSelecionado&&a!=="id"){alert("Selecione seu nome na aba Identificação primeiro.\n\nDigite seu nome no campo de busca e clique sobre ele na lista.");return}
   document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});
   document.querySelector('[data-tab="'+a+'"]').classList.add("active");
   ["id","en","ou","gr","ri"].forEach(function(x){$("a-"+x).classList.toggle("hd",x!==a)});
@@ -660,7 +655,7 @@ function pdfRIT(){
 function publicarTodos(){
   var names=Object.keys(DB);
   var total=names.length,done=0,errs=0;
-  var btn=event.target;btn.disabled=true;btn.textContent="⏳ Publicando...";
+  var btn=document.querySelector('[onclick*="publicarTodos"]');if(btn){btn.disabled=true;btn.textContent="⏳ Publicando...";}
   mostrarSyncStatus("enviando");
 
   // Firebase batch tem limite de 500 ops, dividir se necessário
@@ -693,11 +688,11 @@ function publicarTodos(){
   }
 
   Promise.all(batches.map(function(b){return b.commit()})).then(function(){
-    btn.disabled=false;btn.innerHTML="&#128225; Publicar";
+    if(btn){btn.disabled=false;btn.innerHTML="&#128225; Publicar";}
     mostrarSyncStatus("ok");
     alert("Publicado com sucesso!\n\n"+names.length+" docentes enviados ao Firebase.\n\nA consulta pública já está atualizada em tempo real.");
   }).catch(function(e){
-    btn.disabled=false;btn.innerHTML="&#128225; Publicar";
+    if(btn){btn.disabled=false;btn.innerHTML="&#128225; Publicar";}
     mostrarSyncStatus("erro");
     alert("Erro ao publicar: "+e.message);
   });
@@ -835,8 +830,7 @@ auth.onAuthStateChanged(function(user){
         }).catch(function(){});
       }
       
-      // NÃO auto-seleciona — o professor DEVE buscar e clicar no seu nome
-      // para garantir que os dados corretos sejam carregados
+      // Professor deve selecionar manualmente no campo de busca
     }else{
       currentUser=null;
       $("loginScreen").style.display="flex";
@@ -862,7 +856,6 @@ if($("fi"))$("fi").addEventListener("input",function(){
 var _origSyncGrade=syncGradeFirebase;
 syncGradeFirebase=function(){
   if(!currentUser){alert("Faça login para sincronizar.");return}
-  if(!isIfceEmail(currentUser.email)){alert("Apenas emails @ifce.edu.br podem publicar alterações.");return}
   _origSyncGrade();
   // Registrar quem editou
   if(E.n){
@@ -874,7 +867,6 @@ syncGradeFirebase=function(){
 var _origPublicarTodos=publicarTodos;
 publicarTodos=function(){
   if(!currentUser){alert("Faça login para publicar.");return}
-  if(!isIfceEmail(currentUser.email)){alert("Apenas emails @ifce.edu.br podem publicar alterações.");return}
   _origPublicarTodos();
 }
 
