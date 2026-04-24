@@ -113,7 +113,15 @@ td.slot-label{background:var(--gbg);font-weight:600;color:var(--g1);font-size:9p
 <div class="prof-stats" id="profStats"></div>
 <div class="leg">
 <div class="leg-i"><div class="leg-dot" style="background:var(--blue)"></div><span>Aula</span></div>
-<div class="leg-i"><div class="leg-dot" style="background:var(--attgreen)"></div><span>Atendimento a alunos</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:var(--attgreen)"></div><span>Atendimento</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:#7B1FA2"></div><span>Preparação</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:#00838F"></div><span>Apoio ao Ensino</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:#E65100"></div><span>Pesquisa</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:#AD1457"></div><span>Extensão</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:#4527A0"></div><span>Coordenação</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:#0D47A1"></div><span>Gestão</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:#00695C"></div><span>Orientação</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:#F9A825"></div><span>Capacitação</span></div>
 </div>
 <div class="tbl-wrap"><table id="gradeTable"></table></div>
 <div class="disc-list" id="discList"></div>
@@ -237,19 +245,30 @@ function showProf(nm){
   document.getElementById("profNome").textContent=nm;
 
   // Count atendimento slots from grade
-  var attCount=0;
+  var attCount=0;var outroCount=0;
   DIAS.forEach(function(dia){
-    (d.grade[dia]||[]).forEach(function(b){if(b.tipo==="atendimento")attCount++});
+    (d.grade[dia]||[]).forEach(function(b){
+      var tp=b.tipo||b.tp||"aula";
+      if(tp==="atendimento")attCount++;
+      else if(tp!=="aula")outroCount++;
+    });
   });
 
   var stats='<div class="stat stat-aula">'+d.total_aulas+'h de aulas</div>';
   if(attCount>0)stats+='<div class="stat stat-att">'+attCount+'h atendimento</div>';
+  if(outroCount>0)stats+='<div class="stat" style="background:#EDE7F6;color:#4527A0">'+outroCount+'h outras atividades</div>';
   document.getElementById("profStats").innerHTML=stats;
+
+  var CORES={"aula":"#1d4ed8","atendimento":"#15803d","prep":"#7B1FA2","apoio":"#00838F","pesquisa":"#E65100","extensao":"#AD1457","coord":"#4527A0","gestao":"#0D47A1","orient":"#00695C","capac":"#F9A825","outro":"#78909C"};
+  var LABELS={"atendimento":"Atend. a alunos","prep":"Preparação","apoio":"Apoio ao Ensino","pesquisa":"Pesquisa","extensao":"Extensão","coord":"Coordenação","gestao":"Gestão","orient":"Orientação","capac":"Capacitação","outro":"Outro"};
 
   // Build table
   var h="<thead><tr><th></th>";
   DIAS.forEach(function(dia){h+="<th>"+dia.substring(0,3)+"</th>"});
   h+="</tr></thead><tbody>";
+
+  // Track activities by category
+  var atividadesEnsino=[];var atividadesPesquisa=[];var atividadesExtensao=[];var atividadesGestao=[];var atividadesOutras=[];
 
   SLOTS.forEach(function(s){
     var parts=s.h.split("-"),si=parts[0],sf=parts[1];
@@ -260,12 +279,29 @@ function showProf(nm){
       if(!b)b=bs.find(function(x){return x.i===si&&x.f===sf});
       if(b){
         var tp=b.tipo||b.tp||"aula";
-        if(tp==="atendimento"){
-          h+='<td><div class="cell-att"><span class="att-txt">Atend.</span><span class="att-sub">a alunos</span></div></td>';
-        }else{
-          var atv=b.atividade||b.a||"";
+        var cor=CORES[tp]||"#78909C";
+        var atv=b.atividade||b.a||"";
+        var label=LABELS[tp]||atv;
+        
+        // Track for listing
+        var trackItem=dia+" "+s.l+": "+(atv||label);
+        if(tp==="aula"){/* tracked via disciplinas */}
+        else if(tp==="atendimento"){if(atividadesEnsino.indexOf("Atendimento a alunos — "+dia+" "+s.l)===-1)atividadesEnsino.push("Atendimento a alunos — "+dia+" "+s.l)}
+        else if(tp==="prep"||tp==="apoio"||tp==="orient"||tp==="capac"){if(atividadesEnsino.indexOf(label+" — "+dia+" "+s.l)===-1)atividadesEnsino.push(label+" — "+dia+" "+s.l)}
+        else if(tp==="pesquisa"){atividadesPesquisa.push(atv||label+" — "+dia+" "+s.l)}
+        else if(tp==="extensao"){atividadesExtensao.push(atv||label+" — "+dia+" "+s.l)}
+        else if(tp==="coord"||tp==="gestao"){atividadesGestao.push(atv||label+" — "+dia+" "+s.l)}
+        else{atividadesOutras.push(atv||label+" — "+dia+" "+s.l)}
+
+        if(tp==="aula"){
           var ps=atv.split(" — ");
           h+='<td><div class="cell-aula" title="'+esc(atv)+'"><span class="disc">'+esc(ps[0])+'</span><span class="turma">'+esc(ps[1]||b.turma||b.t||"")+'</span></div></td>';
+        }else if(tp==="atendimento"){
+          h+='<td><div class="cell-att"><span class="att-txt">Atend.</span><span class="att-sub">a alunos</span></div></td>';
+        }else{
+          var shortLabel=label.length>16?label.substring(0,14)+"...":label;
+          var txtCor=tp==="capac"?"#333":"#fff";
+          h+='<td><div style="background:'+cor+';color:'+txtCor+';border-radius:4px;padding:3px 4px;font-size:8px;line-height:1.25;margin:1px;min-height:30px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:600" title="'+esc(atv||label)+'">'+esc(shortLabel)+'</div></td>';
         }
       }else{
         h+="<td></td>";
@@ -276,11 +312,40 @@ function showProf(nm){
   h+="</tbody>";
   document.getElementById("gradeTable").innerHTML=h;
 
-  // Discipline list
-  var dl='<div class="disc-title">&#128218; Disciplinas ministradas</div>';
+  // Build categorized activity list
+  var dl='<div class="disc-title">&#128218; Atividades de Ensino</div>';
   d.disciplinas.forEach(function(disc){
     dl+='<div class="disc-item"><span class="disc-nm">'+esc(disc.nome)+(disc.turma&&disc.turma!=="—"?' <span style="color:#9ca3af;font-size:10px">'+esc(disc.turma)+'</span>':"")+'</span><span class="disc-ch">'+disc.ch+'h</span></div>';
   });
+  if(atividadesEnsino.length>0){
+    atividadesEnsino.forEach(function(a){
+      dl+='<div class="disc-item"><span class="disc-nm">'+esc(a)+'</span><span class="disc-ch" style="background:#dcfce7;color:#15803d">1h</span></div>';
+    });
+  }
+  if(atividadesPesquisa.length>0){
+    dl+='<div class="disc-title" style="margin-top:14px;color:#E65100">&#128300; Atividades de Pesquisa</div>';
+    atividadesPesquisa.forEach(function(a){
+      dl+='<div class="disc-item"><span class="disc-nm">'+esc(a)+'</span><span class="disc-ch" style="background:#FFF3E0;color:#E65100">1h</span></div>';
+    });
+  }
+  if(atividadesExtensao.length>0){
+    dl+='<div class="disc-title" style="margin-top:14px;color:#AD1457">&#127760; Atividades de Extensão</div>';
+    atividadesExtensao.forEach(function(a){
+      dl+='<div class="disc-item"><span class="disc-nm">'+esc(a)+'</span><span class="disc-ch" style="background:#FCE4EC;color:#AD1457">1h</span></div>';
+    });
+  }
+  if(atividadesGestao.length>0){
+    dl+='<div class="disc-title" style="margin-top:14px;color:#4527A0">&#127963; Atividades de Gestão</div>';
+    atividadesGestao.forEach(function(a){
+      dl+='<div class="disc-item"><span class="disc-nm">'+esc(a)+'</span><span class="disc-ch" style="background:#EDE7F6;color:#4527A0">1h</span></div>';
+    });
+  }
+  if(atividadesOutras.length>0){
+    dl+='<div class="disc-title" style="margin-top:14px;color:#78909C">&#128221; Outras Atividades</div>';
+    atividadesOutras.forEach(function(a){
+      dl+='<div class="disc-item"><span class="disc-nm">'+esc(a)+'</span><span class="disc-ch" style="background:#ECEFF1;color:#546E7A">1h</span></div>';
+    });
+  }
   document.getElementById("discList").innerHTML=dl;
 
   window.scrollTo({top:0,behavior:"smooth"});
