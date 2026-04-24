@@ -809,30 +809,51 @@ function logoutUser(){
 function isIfceEmail(email){return email&&email.toLowerCase().endsWith("@ifce.edu.br")}
 
 // Listener de estado de autenticação
+var authReady=false;
 auth.onAuthStateChanged(function(user){
-  if(user){
-    currentUser={uid:user.uid,email:user.email,nome:user.displayName,foto:user.photoURL};
-    $("loginScreen").style.display="none";
-    $("appMain").style.display="block";
-    $("userInfo").textContent=user.displayName||user.email;
-    $("btnLogout").style.display="inline-block";
-    
-    // Buscar SIAPE do Firestore se existir
-    if(isIfceEmail(user.email)){
-      db.collection("usuarios").doc(user.uid).get().then(function(doc){
-        if(doc.exists&&doc.data().siape){$("fi").value=doc.data().siape}
-      }).catch(function(){});
+  function doInit(){
+    if(user){
+      currentUser={uid:user.uid,email:user.email,nome:user.displayName,foto:user.photoURL};
+      $("loginScreen").style.display="none";
+      $("appMain").style.display="block";
+      $("userInfo").textContent=user.displayName||user.email;
+      $("btnLogout").style.display="inline-block";
+      
+      initSel();renderLeg();calc();
+      
+      // Buscar SIAPE do Firestore se existir
+      if(isIfceEmail(user.email)){
+        db.collection("usuarios").doc(user.uid).get().then(function(doc){
+          if(doc.exists&&doc.data().siape){$("fi").value=doc.data().siape}
+        }).catch(function(){});
+      }
+      
+      // Tentar auto-selecionar professor pelo nome do Google
+      if(user.displayName){
+        var googleName=remAc(user.displayName);
+        var match=NOMES.find(function(n){return remAc(n)===googleName});
+        if(!match){
+          // Tentar match parcial (primeiro + último nome)
+          var parts=user.displayName.split(" ");
+          if(parts.length>=2){
+            var first=remAc(parts[0]);
+            var last=remAc(parts[parts.length-1]);
+            match=NOMES.find(function(n){var nr=remAc(n);return nr.indexOf(first)>=0&&nr.indexOf(last)>=0});
+          }
+        }
+        if(match){
+          $("psearch").value=match;$("psel").value=match;onProf();
+        }else{
+          $("psearch").value=user.displayName;
+        }
+      }
+    }else{
+      currentUser=null;
+      $("loginScreen").style.display="flex";
+      $("appMain").style.display="none";
     }
-    
-    // Auto-preencher email no campo de identificação se vazio
-    if(!$("fn").value&&user.displayName)$("psearch").value=user.displayName;
-    
-    initSel();renderLeg();calc();
-  }else{
-    currentUser=null;
-    $("loginScreen").style.display="flex";
-    $("appMain").style.display="none";
   }
+  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",doInit)}else{doInit()}
 });
 
 // Salvar SIAPE no Firestore ao alterar
@@ -868,7 +889,12 @@ publicarTodos=function(){
 }
 
 window.addEventListener("DOMContentLoaded",function(){
-  // initSel, renderLeg e calc serão chamados pelo onAuthStateChanged
+  // Se não tem auth (ex: erro de conexão), inicializar mesmo assim
+  setTimeout(function(){
+    if(!currentUser&&$("appMain").style.display==="none"){
+      // Não está logado — a tela de login já está visível
+    }
+  },3000);
 });
 
 </script>
