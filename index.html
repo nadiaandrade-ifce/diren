@@ -114,6 +114,7 @@ td.slot-label{background:var(--gbg);font-weight:600;color:var(--g1);font-size:9p
 <div class="leg">
 <div class="leg-i"><div class="leg-dot" style="background:var(--blue)"></div><span>Aula</span></div>
 <div class="leg-i"><div class="leg-dot" style="background:var(--attgreen)"></div><span>Atendimento</span></div>
+<div class="leg-i"><div class="leg-dot" style="background:#0277BD"></div><span>Aula Externa</span></div>
 <div class="leg-i"><div class="leg-dot" style="background:#7B1FA2"></div><span>Preparação</span></div>
 <div class="leg-i"><div class="leg-dot" style="background:#00838F"></div><span>Apoio ao Ensino</span></div>
 <div class="leg-i"><div class="leg-dot" style="background:#E65100"></div><span>Pesquisa</span></div>
@@ -250,7 +251,7 @@ function showProf(nm){
     (d.grade[dia]||[]).forEach(function(b){
       var tp=b.tipo||b.tp||"aula";
       if(tp==="atendimento")attCount++;
-      else if(tp!=="aula")outroCount++;
+      else if(tp!=="aula"&&tp!=="aula_externa")outroCount++;
     });
   });
 
@@ -259,8 +260,8 @@ function showProf(nm){
   if(outroCount>0)stats+='<div class="stat" style="background:#EDE7F6;color:#4527A0">'+outroCount+'h outras atividades</div>';
   document.getElementById("profStats").innerHTML=stats;
 
-  var CORES={"aula":"#1d4ed8","atendimento":"#15803d","prep":"#7B1FA2","apoio":"#00838F","pesquisa":"#E65100","extensao":"#AD1457","coord":"#4527A0","gestao":"#0D47A1","orient":"#00695C","capac":"#F9A825","outro":"#78909C"};
-  var LABELS={"atendimento":"Atend. a alunos","prep":"Preparação","apoio":"Apoio ao Ensino","pesquisa":"Pesquisa","extensao":"Extensão","coord":"Coordenação","gestao":"Gestão","orient":"Orientação","capac":"Capacitação","outro":"Outro"};
+  var CORES={"aula":"#1d4ed8","aula_externa":"#0277BD","atendimento":"#15803d","prep":"#7B1FA2","apoio":"#00838F","pesquisa":"#E65100","extensao":"#AD1457","coord":"#4527A0","gestao":"#0D47A1","orient":"#00695C","capac":"#F9A825","outro":"#78909C"};
+  var LABELS={"atendimento":"Atend. a alunos","aula_externa":"Aula Externa","prep":"Preparação","apoio":"Apoio ao Ensino","pesquisa":"Pesquisa","extensao":"Extensão","coord":"Coordenação","gestao":"Gestão","orient":"Orientação","capac":"Capacitação","outro":"Outro"};
 
   // Build table
   var h="<thead><tr><th></th>";
@@ -293,7 +294,11 @@ function showProf(nm){
         else if(tp==="coord"||tp==="gestao"){atividadesGestao.push(atv||label+" — "+dia+" "+s.l)}
         else{atividadesOutras.push(atv||label+" — "+dia+" "+s.l)}
 
-        if(tp==="aula"){
+        if(tp==="aula_externa"){
+          var extLabel=atv||"Aula Externa";
+          if(extLabel.length>20)extLabel=extLabel.substring(0,18)+"...";
+          h+='<td><div style="background:#0277BD;color:#fff;border-radius:4px;padding:3px 4px;font-size:8px;line-height:1.25;margin:1px;min-height:30px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:600" title="'+esc(atv)+'">'+esc(extLabel)+'</div></td>';
+        }else if(tp==="aula"){
           var ps=atv.split(" — ");
           h+='<td><div class="cell-aula" title="'+esc(atv)+'"><span class="disc">'+esc(ps[0])+'</span><span class="turma">'+esc(ps[1]||b.turma||b.t||"")+'</span></div></td>';
         }else if(tp==="atendimento"){
