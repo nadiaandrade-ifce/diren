@@ -628,6 +628,7 @@ function syncGradeFirebase(){
   }).catch(function(e){
     console.error("Firebase sync erro:",e);
     mostrarSyncStatus("erro");
+    alert("Erro ao sincronizar com Firebase:\n"+e.message+"\n\nVerifique as regras do Firestore e a conexão.");
   });
 }
 
@@ -701,22 +702,25 @@ function pdfPIT(){
   tr(["6. COMISSÕES/REPRESENTAÇÃO",v.cT+"h"],[150,30],{b:1,f:[200,230,201]});E.comissoes.forEach(function(x){tr([x.tipo+" - "+x.detalhe,x.ch+"h"],[150,30])});
   tr(["TOTAL",v.tot+"h"],[150,30],{b:1,f:[27,94,32],tc:[255,255,255]});
   // Aviso de excesso se total > regime
-  if(v.tot>rg.t){cp(12);y+=6;doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(198,40,40);
-    doc.text("Obs.: A CH total ("+v.tot+"h) excede o regime de "+rg.t+"h. Conforme Res. 39/2016 e Nota Técnica 3/2023,",m,y);y+=4;
-    doc.text("serão contabilizadas apenas "+rg.t+"h relativas ao regime de trabalho, de acordo com o quadro de distribuição.",m,y);
-    doc.setTextColor(0);y+=4}
-  cp(30);y+=10;doc.setFont("helvetica","normal");doc.setFontSize(9);
+  if(v.tot>rg.t){cp(20);y+=6;doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(198,40,40);
+    var avisoTxt="Obs.: A CH total ("+v.tot+"h) excede o regime de "+rg.t+"h. Conforme Res. 39/2016 e Nota Técnica 3/2023, serão contabilizadas apenas "+rg.t+"h relativas ao regime de trabalho, de acordo com o quadro de distribuição.";
+    var avisoLines=doc.splitTextToSize(avisoTxt,W-2*m);
+    avisoLines.forEach(function(l){cp(5);doc.text(l,m,y);y+=4});
+    doc.setTextColor(0)}
+  cp(40);y+=12;doc.setFont("helvetica","normal");doc.setFontSize(9);
   // Data automática
   var hoje=new Date();var meses=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
   var dataStr="Canindé, "+hoje.getDate()+" de "+meses[hoje.getMonth()]+" de "+hoje.getFullYear()+".";
-  doc.text(dataStr,W/2,y,{align:"center"});y+=14;
-  var cW=(W-2*m)/3;doc.line(m+5,y,m+cW-5,y);doc.line(m+cW+5,y,m+2*cW-5,y);doc.line(m+2*cW+5,y,W-m-5,y);y+=4;
+  doc.text(dataStr,W/2,y,{align:"center"});y+=16;
+  var cW=(W-2*m)/3;doc.line(m+5,y,m+cW-5,y);doc.line(m+cW+5,y,m+2*cW-5,y);doc.line(m+2*cW+5,y,W-m-5,y);y+=5;
   doc.setFontSize(8);doc.text("Professor(a)",m+cW/2,y,{align:"center"});doc.text("Coord. de Curso",m+cW+cW/2,y,{align:"center"});doc.text("Chefe Dep./Dir. Ensino",m+2*cW+cW/2,y,{align:"center"});
   // Instrução SEI
-  cp(25);y+=12;doc.setFont("helvetica","italic");doc.setFontSize(7);doc.setTextColor(100);
-  doc.text("Anexe este documento ao seu Processo SEI com despacho de encaminhamento para a coordenação do curso",W/2,y,{align:"center"});y+=3.5;
-  doc.text("onde possui a maior carga horária. Passo a passo: https://codepen.io/Nadia-Ferreira/full/pvEVzmw",W/2,y,{align:"center"});
-  doc.setTextColor(0);
+  cp(20);y+=14;doc.setFont("helvetica","italic");doc.setFontSize(7.5);doc.setTextColor(80);
+  doc.text("Anexe este documento ao seu Processo SEI com despacho de encaminhamento para a coordenação",W/2,y,{align:"center"});y+=4;
+  doc.text("do curso onde possui a maior carga horária.",W/2,y,{align:"center"});y+=5;
+  doc.setTextColor(21,101,192);doc.setFont("helvetica","bold");
+  doc.text("Passo a passo: https://codepen.io/Nadia-Ferreira/full/pvEVzmw",W/2,y,{align:"center"});
+  doc.setTextColor(0);doc.setFont("helvetica","normal");
   doc.save("PIT_"+(E.n||"docente").replace(/\s+/g,"_")+"_"+E.s+".pdf");
 }
 
@@ -766,22 +770,25 @@ function pdfRIT(){
 
   // Aviso de excesso se total > regime
   var rg=REG[E.r],v=doVal();
-  if(v.tot>rg.t){cp(12);y+=6;doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(198,40,40);
-    doc.text("Obs.: A CH total ("+v.tot+"h) excede o regime de "+rg.t+"h. Conforme Res. 39/2016 e Nota Técnica 3/2023,",m,y);y+=4;
-    doc.text("serão contabilizadas apenas "+rg.t+"h relativas ao regime de trabalho, de acordo com o quadro de distribuição preenchido.",m,y);
-    doc.setTextColor(0);y+=4}
+  if(v.tot>rg.t){cp(20);y+=6;doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(198,40,40);
+    var avisoTxt="Obs.: A CH total ("+v.tot+"h) excede o regime de "+rg.t+"h. Conforme Res. 39/2016 e Nota Técnica 3/2023, serão contabilizadas apenas "+rg.t+"h relativas ao regime de trabalho, de acordo com o quadro de distribuição preenchido.";
+    var avisoLines=doc.splitTextToSize(avisoTxt,W-2*m);
+    avisoLines.forEach(function(l){cp(5);doc.text(l,m,y);y+=4});
+    doc.setTextColor(0)}
 
-  cp(30);y+=10;doc.setFontSize(9);
+  cp(40);y+=12;doc.setFontSize(9);doc.setFont("helvetica","normal");
   var hoje=new Date();var meses=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
   var dataStr="Canindé, "+hoje.getDate()+" de "+meses[hoje.getMonth()]+" de "+hoje.getFullYear()+".";
-  doc.text(dataStr,W/2,y,{align:"center"});y+=14;
-  var cW=(W-2*m)/3;doc.line(m+5,y,m+cW-5,y);doc.line(m+cW+5,y,m+2*cW-5,y);doc.line(m+2*cW+5,y,W-m-5,y);y+=4;
+  doc.text(dataStr,W/2,y,{align:"center"});y+=16;
+  var cW=(W-2*m)/3;doc.line(m+5,y,m+cW-5,y);doc.line(m+cW+5,y,m+2*cW-5,y);doc.line(m+2*cW+5,y,W-m-5,y);y+=5;
   doc.setFontSize(8);doc.text("Professor(a)",m+cW/2,y,{align:"center"});doc.text("Coord. de Curso",m+cW+cW/2,y,{align:"center"});doc.text("Chefe Dep./Dir. Ensino",m+2*cW+cW/2,y,{align:"center"});
   // Instrução SEI
-  cp(25);y+=12;doc.setFont("helvetica","italic");doc.setFontSize(7);doc.setTextColor(100);
-  doc.text("Anexe este documento ao seu Processo SEI com despacho de encaminhamento para a coordenação do curso",W/2,y,{align:"center"});y+=3.5;
-  doc.text("onde possui a maior carga horária. Passo a passo: https://codepen.io/Nadia-Ferreira/full/pvEVzmw",W/2,y,{align:"center"});
-  doc.setTextColor(0);
+  cp(20);y+=14;doc.setFont("helvetica","italic");doc.setFontSize(7.5);doc.setTextColor(80);
+  doc.text("Anexe este documento ao seu Processo SEI com despacho de encaminhamento para a coordenação",W/2,y,{align:"center"});y+=4;
+  doc.text("do curso onde possui a maior carga horária.",W/2,y,{align:"center"});y+=5;
+  doc.setTextColor(21,101,192);doc.setFont("helvetica","bold");
+  doc.text("Passo a passo: https://codepen.io/Nadia-Ferreira/full/pvEVzmw",W/2,y,{align:"center"});
+  doc.setTextColor(0);doc.setFont("helvetica","normal");
   doc.save("RIT_"+(E.n||"docente").replace(/\s+/g,"_")+"_"+E.s+".pdf");
 }
 
