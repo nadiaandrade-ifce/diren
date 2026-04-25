@@ -675,7 +675,7 @@ function gerarRIT(){
 
 function pdfPIT(){
   try{
-  var v=doVal();var j=window.jspdf;if(!j){alert("Aguarde o carregamento do jsPDF");return}
+  lerE();var v=doVal();var rg=REG[E.r];var j=window.jspdf;if(!j){alert("Aguarde o carregamento do jsPDF");return}
   var doc=new j.jsPDF({unit:"mm",format:"a4"});
   var W=210,H=297,m=15,y=m;
   function cp(n){if(y+(n||15)>H-m){doc.addPage();y=m}}
@@ -998,15 +998,14 @@ if($("fi"))$("fi").addEventListener("input",function(){
   },2000);
 });
 
-// Proteger publicação — só quem é dono ou tem email IFCE pode editar
+// Proteger publicação — exige login
 var _origSyncGrade=syncGradeFirebase;
 syncGradeFirebase=function(){
-  if(!currentUser){alert("Faça login para sincronizar.");return}
+  if(!currentUser){console.warn("Sync bloqueado: sem login");return}
   _origSyncGrade();
-  // Registrar quem editou
   if(E.n){
     var docId=sanitizeDocId(E.n);
-    db.collection("horarios").doc(docId).update({editadoPor:currentUser.email,editadoEm:new Date().toISOString()}).catch(function(){});
+    db.collection("horarios").doc(docId).update({editadoPor:currentUser.email,editadoEm:new Date().toISOString()}).catch(function(e){console.log("update extra erro:",e)});
   }
 }
 
