@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Sistema PIT/RIT — IFCE Campus Canindé</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -671,6 +674,7 @@ function gerarRIT(){
 }
 
 function pdfPIT(){
+  try{
   var v=doVal();var j=window.jspdf;if(!j){alert("Aguarde o carregamento do jsPDF");return}
   var doc=new j.jsPDF({unit:"mm",format:"a4"});
   var W=210,H=297,m=15,y=m;
@@ -722,6 +726,7 @@ function pdfPIT(){
   doc.text("Passo a passo: https://codepen.io/Nadia-Ferreira/full/pvEVzmw",W/2,y,{align:"center"});
   doc.setTextColor(0);doc.setFont("helvetica","normal");
   doc.save("PIT_"+(E.n||"docente").replace(/\s+/g,"_")+"_"+E.s+".pdf");
+  }catch(err){alert("Erro ao gerar PDF do PIT:\n"+err.message+"\n\nLinha: "+err.stack);console.error(err)}
 }
 
 function pdfRIT(){
