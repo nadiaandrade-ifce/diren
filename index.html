@@ -146,10 +146,12 @@ var firebaseReady=false;
 
 // Listener em tempo real — atualiza automaticamente quando PIT/RIT publica
 fbdb.collection("horarios").onSnapshot(function(snapshot){
+  var count=0;
   snapshot.forEach(function(doc){
     var d=doc.data();
-    if(d.nome)FIREBASE_DATA[d.nome]=d;
+    if(d.nome){FIREBASE_DATA[d.nome]=d;count++}
   });
+  console.log("Firebase: "+count+" docentes carregados");
   firebaseReady=true;
   LIVE=getDB();
   updateSyncStatus();
