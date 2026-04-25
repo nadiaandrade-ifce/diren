@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Horários Docentes — IFCE Canindé</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap');
@@ -155,12 +158,23 @@ fbdb.collection("horarios").onSnapshot(function(snapshot){
   firebaseReady=true;
   LIVE=getDB();
   updateSyncStatus();
-  // Se está mostrando um professor, atualiza a tela
   if(currentProf&&LIVE[currentProf]){showProf(currentProf)}
 },function(err){
   console.error("Firebase listen error:",err);
   firebaseReady=false;
-  updateSyncStatus();
+  var el=document.getElementById("syncStatus");
+  el.innerHTML="&#10060; Erro Firebase: "+err.code+" — "+err.message;
+  el.style.color="#C62828";
+});
+
+// Teste inicial: tenta ler 1 documento para verificar conexão
+fbdb.collection("horarios").limit(1).get().then(function(snap){
+  console.log("Firebase conexão OK, docs na coleção: "+snap.size);
+}).catch(function(err){
+  console.error("Firebase teste falhou:",err);
+  var el=document.getElementById("syncStatus");
+  el.innerHTML="&#10060; Sem acesso ao Firebase: "+err.message;
+  el.style.color="#C62828";
 });
 
 var currentProf=null;
