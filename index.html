@@ -262,18 +262,22 @@ function showProf(nm){
   document.getElementById("profNome").textContent=nm;
 
   // Count atendimento slots from grade
-  var attCount=0;var outroCount=0;
+  var aulaCount=0;var extCount=0;var attCount=0;var outroCount=0;
   DIAS.forEach(function(dia){
     (d.grade[dia]||[]).forEach(function(b){
       var tp=b.tipo||b.tp||"aula";
-      if(tp==="atendimento")attCount++;
-      else if(tp!=="aula"&&tp!=="aula_externa")outroCount++;
+      if(tp==="aula")aulaCount++;
+      else if(tp==="aula_externa")extCount++;
+      else if(tp==="atendimento")attCount++;
+      else outroCount++;
     });
   });
 
-  var stats='<div class="stat stat-aula">'+d.total_aulas+'h de aulas</div>';
+  var totalSlots=aulaCount+extCount+attCount+outroCount;
+  var stats='<div class="stat stat-aula">'+(aulaCount+extCount)+'h aulas'+(extCount>0?' ('+extCount+' ext.)':'')+'</div>';
   if(attCount>0)stats+='<div class="stat stat-att">'+attCount+'h atendimento</div>';
-  if(outroCount>0)stats+='<div class="stat" style="background:#EDE7F6;color:#4527A0">'+outroCount+'h outras atividades</div>';
+  if(outroCount>0)stats+='<div class="stat" style="background:#EDE7F6;color:#4527A0">'+outroCount+'h outras ativid.</div>';
+  stats+='<div class="stat" style="background:#F5F5F5;color:#333;font-weight:700">Total: '+totalSlots+'h</div>';
   document.getElementById("profStats").innerHTML=stats;
 
   var CORES={"aula":"#1d4ed8","aula_externa":"#0277BD","atendimento":"#15803d","prep":"#7B1FA2","apoio":"#00838F","pesquisa":"#E65100","extensao":"#AD1457","coord":"#4527A0","gestao":"#0D47A1","orient":"#00695C","capac":"#F9A825","outro":"#78909C"};
