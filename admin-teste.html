@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — Gestão PIT/RIT IFCE Canindé</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f172a;--card:#1e293b;--card2:#334155;--accent:#22d3ee;--accent2:#06b6d4;--gold:#f59e0b;--green:#10b981;--red:#ef4444;--txt:#e2e8f0;--txt2:#94a3b8;--bdr:#475569;--r:10px}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-box{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:40px;max-width:400px;width:100%;text-align:center}
+.login-box h2{font-size:22px;margin-bottom:6px;color:var(--accent)}
+.login-box p{font-size:13px;color:var(--txt2);margin-bottom:24px}
+.btn-google{display:inline-flex;align-items:center;gap:10px;padding:12px 28px;border:2px solid var(--bdr);background:var(--card2);border-radius:var(--r);cursor:pointer;font-size:14px;font-family:inherit;color:var(--txt);transition:all .2s}
+.btn-google:hover{border-color:var(--accent);background:#475569}
+.login-error{margin-top:12px;font-size:12px;color:var(--red);display:none}
+
+.app{display:none}
+.hdr{background:linear-gradient(135deg,#0c4a6e,#164e63);padding:16px 20px;border-bottom:3px solid var(--accent);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.hdr h1{font-size:17px;font-weight:700;color:#fff}
+.hdr-user{font-size:12px;color:var(--txt2)}
+.btn{padding:8px 16px;border:1px solid var(--bdr);background:var(--card2);border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;color:var(--txt);font-family:inherit;transition:all .15s}
+.btn:hover{border-color:var(--accent)}.btn-p{background:var(--accent2);color:#fff;border-color:var(--accent2)}.btn-p:hover{background:#0891b2}
+.btn-danger{background:var(--red);color:#fff;border-color:var(--red)}.btn-sm{padding:5px 12px;font-size:12px}
+.ctn{max-width:900px;margin:0 auto;padding:20px 16px}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card h3{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.card .sub{font-size:12px;color:var(--txt2);margin-bottom:14px}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-active{background:#064e3b;color:#34d399;border:1px solid #10b981}
+.badge-inactive{background:#1e293b;color:#94a3b8;border:1px solid #475569}
+.sem-list{display:flex;flex-direction:column;gap:8px}
+.sem-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card2);border-radius:var(--r);border:1px solid var(--bdr);flex-wrap:wrap;gap:8px}
+.sem-item.active{border-color:var(--green);background:#064e3b30}
+.sem-nome{font-weight:600;font-size:14px}
+.sem-info{font-size:11px;color:var(--txt2)}
+.sem-actions{display:flex;gap:6px}
+.form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:flex-end}
+.form-group{flex:1;min-width:140px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select{width:100%;padding:8px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-size:13px;color:var(--txt);background:var(--card);font-family:inherit}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent)}
+.upload-zone{border:2px dashed var(--bdr);border-radius:var(--r);padding:30px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:rgba(34,211,238,.05)}
+.upload-zone p{font-size:13px;color:var(--txt2);margin-top:8px}
+.log{background:#0f172a;border:1px solid var(--bdr);border-radius:var(--r);padding:12px;max-height:200px;overflow-y:auto;font-family:monospace;font-size:11px;color:var(--green);margin-top:12px;white-space:pre-wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;text-align:center}
+.stat .num{font-size:28px;font-weight:800;color:var(--accent)}
+.stat .lbl{font-size:11px;color:var(--txt2);margin-top:2px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:12px 20px;border-radius:var(--r);font-size:13px;font-weight:600;z-index:999;display:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-wrap">
+<div class="login-box">
+<div style="font-size:32px;margin-bottom:12px">🔒</div>
+<h2>Painel Administrativo</h2>
+<p>IFCE Campus Canindé — Gestão de Semestres e Horários</p>
+<button class="btn-google" onclick="doLogin()">
+<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+Entrar com Google
+</button>
+<div class="login-error" id="loginError"></div>
+<p style="margin-top:16px;font-size:11px;color:#64748b">Acesso restrito a administradores autorizados.</p>
+</div>
+</div>
+
+<div class="app" id="app">
+<div class="hdr">
+<h1>⚙️ Admin — PIT/RIT IFCE Canindé</h1>
+<div style="display:flex;align-items:center;gap:12px">
+<span class="hdr-user" id="userDisplay"></span>
+<button class="btn btn-sm" onclick="doLogout()">Sair</button>
+</div>
+</div>
+
+<div class="ctn">
+<div class="stats">
+<div class="stat"><div class="num" id="statVigente">—</div><div class="lbl">Semestre Vigente</div></div>
+<div class="stat"><div class="num" id="statSemestres">0</div><div class="lbl">Semestres Cadastrados</div></div>
+<div class="stat"><div class="num" id="statDocentes">0</div><div class="lbl">Docentes Publicados</div></div>
+</div>
+
+<!-- CARD: Controle de Vigência -->
+<div class="card">
+<h3>📅 Controle de Semestres e Vigência</h3>
+<div class="sub">Cadastre semestres e defina qual é o vigente. A consulta do aluno carregará automaticamente o semestre ativo.</div>
+
+<div class="form-row">
+<div class="form-group"><label>Novo Semestre</label><input type="text" id="newSem" placeholder="Ex: 2026.1"></div>
+<div class="form-group"><label>&nbsp;</label><button class="btn btn-p" onclick="addSemestre()">+ Adicionar</button></div>
+</div>
+
+<div class="sem-list" id="semList">
+<div style="text-align:center;padding:20px;color:var(--txt2);font-size:13px">Carregando semestres...</div>
+</div>
+</div>
+
+<!-- CARD: Upload de PDF -->
+<div class="card">
+<h3>📄 Importar Horários (PDF do aSc TimeTables)</h3>
+<div class="sub">Faça upload do PDF gerado pelo aSc TimeTables. O sistema extrairá os dados dos docentes via pdf.js e salvará no Firestore atrelados ao semestre selecionado.</div>
+
+<div class="form-row">
+<div class="form-group"><label>Semestre de Destino</label><select id="uploadSem"></select></div>
+</div>
+
+<div class="upload-zone" id="uploadZone" onclick="document.getElementById('pdfInput').click()">
+<div style="font-size:36px">📤</div>
+<p>Clique ou arraste um PDF aqui</p>
+<p style="font-size:11px;color:#64748b">Formato: PDF do aSc TimeTables (Docentes)</p>
+</div>
+<input type="file" id="pdfInput" accept=".pdf" style="display:none" onchange="handlePDF(event)">
+
+<div class="log" id="importLog" style="display:none"></div>
+</div>
+
+<!-- CARD: Dados Publicados -->
+<div class="card">
+<h3>📊 Dados Publicados no Firestore</h3>
+<div class="sub">Docentes com grade publicada por semestre.</div>
+<div id="publishedData" style="font-size:13px;color:var(--txt2)">Carregando...</div>
+</div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK v9 modular via CDN -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js';
+import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, query, where, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
+
+// ============================================================
+// 🔧 COLE SEU firebaseConfig AQUI
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyAhaMmUr3MeO4_ctzgBrS5AIG8MehE6cZ8",
+  authDomain: "pit-rit-horarios.firebaseapp.com",
+  projectId: "pit-rit-horarios",
+  storageBucket: "pit-rit-horarios.firebasestorage.app",
+  messagingSenderId: "739278051497",
+  appId: "1:739278051497:web:1fd7f0adabe9e65ea971b8"
+};
+// ============================================================
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// E-mails autorizados como admin (adicione os seus)
+const ADMINS = [
+  "admin@ifce.edu.br",
+  // Adicione aqui e-mails dos gestores autorizados
+];
+
+function isAdmin(email) {
+  // Aceita qualquer @ifce.edu.br como admin (ajuste conforme necessidade)
+  return email && email.endsWith("@ifce.edu.br");
+}
+
+const $ = id => document.getElementById(id);
+
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// ===================== AUTH =====================
+window.doLogin = async function() {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    $('loginError').textContent = e.message;
+    $('loginError').style.display = 'block';
+  }
+};
+
+window.doLogout = function() { signOut(auth); };
+
+onAuthStateChanged(auth, user => {
+  if (user && isAdmin(user.email)) {
+    $('loginScreen').style.display = 'none';
+    $('app').style.display = 'block';
+    $('userDisplay').textContent = user.email;
+    loadSemestres();
+    loadPublishedStats();
+  } else if (user) {
+    signOut(auth);
+    $('loginError').textContent = 'Acesso restrito. Seu e-mail não é autorizado.';
+    $('loginError').style.display = 'block';
+  } else {
+    $('loginScreen').style.display = 'flex';
+    $('app').style.display = 'none';
+  }
+});
+
+// ===================== SEMESTRES =====================
+let semestres = [];
+let vigente = '';
+
+async function loadSemestres() {
+  // Lê vigente
+  try {
+    const statusDoc = await getDoc(doc(db, 'configuracoes', 'status'));
+    if (statusDoc.exists()) {
+      vigente = statusDoc.data().vigente || '';
+    }
+  } catch(e) { console.error('Erro lendo vigente:', e); }
+
+  // Lê semestres cadastrados
+  try {
+    const snap = await getDocs(collection(db, 'semestres'));
+    semestres = [];
+    snap.forEach(d => semestres.push({ id: d.id, ...d.data() }));
+    semestres.sort((a, b) => b.id.localeCompare(a.id));
+  } catch(e) { console.error('Erro lendo semestres:', e); }
+
+  renderSemestres();
+  updateUploadSelect();
+  $('statVigente').textContent = vigente || '—';
+  $('statSemestres').textContent = semestres.length;
+}
+
+function renderSemestres() {
+  const list = $('semList');
+  if (semestres.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--txt2);font-size:13px">Nenhum semestre cadastrado.</div>';
+    return;
+  }
+  list.innerHTML = semestres.map(s => {
+    const isVig = s.id === vigente;
+    return `<div class="sem-item ${isVig ? 'active' : ''}">
+      <div>
+        <span class="sem-nome">${s.id}</span>
+        ${isVig ? '<span class="badge badge-active" style="margin-left:8px">VIGENTE</span>' : '<span class="badge badge-inactive" style="margin-left:8px">inativo</span>'}
+        <div class="sem-info">Criado: ${s.criadoEm ? new Date(s.criadoEm).toLocaleDateString('pt-BR') : '—'}</div>
+      </div>
+      <div class="sem-actions">
+        ${!isVig ? `<button class="btn btn-sm btn-p" onclick="setVigente('${s.id}')">Definir Vigente</button>` : ''}
+        <button class="btn btn-sm btn-danger" onclick="removeSemestre('${s.id}')">Remover</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateUploadSelect() {
+  const sel = $('uploadSem');
+  sel.innerHTML = semestres.map(s => `<option value="${s.id}" ${s.id === vigente ? 'selected' : ''}>${s.id}${s.id === vigente ? ' (vigente)' : ''}</option>`).join('');
+}
+
+window.addSemestre = async function() {
+  const v = $('newSem').value.trim();
+  if (!v) return alert('Informe o código do semestre (ex: 2026.1)');
+  if (!/^\d{4}\.\d$/.test(v)) return alert('Formato inválido. Use AAAA.N (ex: 2026.1)');
+  try {
+    await setDoc(doc(db, 'semestres', v), { criadoEm: new Date().toISOString() });
+    $('newSem').value = '';
+    toast('Semestre ' + v + ' cadastrado!');
+    await loadSemestres();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.setVigente = async function(semId) {
+  if (!confirm('Definir "' + semId + '" como semestre vigente?\n\nA consulta do aluno passará a exibir apenas os dados deste semestre.')) return;
+  try {
+    await setDoc(doc(db, 'configuracoes', 'status'), { vigente: semId, atualizadoEm: new Date().toISOString() });
+    vigente = semId;
+    toast('Semestre vigente: ' + semId);
+    await loadSemestres();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.removeSemestre = async function(semId) {
+  if (!confirm('Remover semestre "' + semId + '"? Isso NÃO apaga os horários já publicados.')) return;
+  try {
+    await deleteDoc(doc(db, 'semestres', semId));
+    toast('Semestre removido');
+    await loadSemestres();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+// ===================== STATS =====================
+async function loadPublishedStats() {
+  try {
+    const snap = await getDocs(collection(db, 'horarios'));
+    let count = 0;
+    snap.forEach(() => count++);
+    $('statDocentes').textContent = count;
+
+    // Show breakdown
+    const bySem = {};
+    snap.forEach(d => {
+      const data = d.data();
+      const sem = data.semestre || 'sem semestre';
+      bySem[sem] = (bySem[sem] || 0) + 1;
+    });
+    const html = Object.keys(bySem).sort().reverse().map(s =>
+      `<div style="padding:6px 0;border-bottom:1px solid var(--bdr)">${s}: <b>${bySem[s]}</b> docentes</div>`
+    ).join('') || 'Nenhum dado publicado.';
+    $('publishedData').innerHTML = html;
+  } catch(e) {
+    $('publishedData').textContent = 'Erro: ' + e.message;
+  }
+}
+
+// ===================== PDF UPLOAD & PARSE =====================
+const uploadZone = $('uploadZone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length > 0) processPDF(e.dataTransfer.files[0]);
+});
+
+window.handlePDF = function(event) {
+  const f = event.target.files[0];
+  if (f) processPDF(f);
+};
+
+async function processPDF(file) {
+  if (!file.name.endsWith('.pdf')) return alert('Selecione um arquivo PDF.');
+  const sem = $('uploadSem').value;
+  if (!sem) return alert('Selecione um semestre de destino.');
+
+  const log = $('importLog');
+  log.style.display = 'block';
+  log.textContent = '📂 Abrindo PDF: ' + file.name + '...\n';
+
+  try {
+    // Carrega pdf.js via CDN
+    if (!window.pdfjsLib) {
+      log.textContent += '⏳ Carregando pdf.js...\n';
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs', true);
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+      log.textContent += '✅ pdf.js carregado\n';
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const numPages = pdfDoc.numPages;
+    log.textContent += `📄 PDF com ${numPages} páginas\n`;
+
+    // Parse each page as a professor timetable
+    const professors = [];
+    for (let i = 1; i <= numPages; i++) {
+      const page = await pdfDoc.getPage(i);
+      const textContent = await page.getTextContent();
+      const items = textContent.items.map(it => ({ str: it.str.trim(), x: it.transform[4], y: it.transform[5], w: it.width, h: it.height })).filter(it => it.str);
+
+      // Find professor name (after "Horário:" line)
+      const profName = extractProfName(items);
+      if (profName && profName.length > 2) {
+        const gradeData = extractGradeFromItems(items, page);
+        professors.push({ nome: profName, ...gradeData });
+        log.textContent += `  ✅ Pg ${i}: ${profName} (${gradeData.total_aulas} aulas)\n`;
+      } else {
+        log.textContent += `  ⚠️ Pg ${i}: nome não encontrado\n`;
+      }
+      log.scrollTop = log.scrollHeight;
+    }
+
+    log.textContent += `\n📊 Total: ${professors.length} docentes extraídos\n`;
+    log.textContent += `⏳ Salvando no Firestore (semestre: ${sem})...\n`;
+
+    // Save to Firestore with batch
+    const batchSize = 400;
+    for (let i = 0; i < professors.length; i += batchSize) {
+      const batch = writeBatch(db);
+      const chunk = professors.slice(i, i + batchSize);
+      chunk.forEach(prof => {
+        const docId = sanitize(prof.nome);
+        const ref = doc(db, 'horarios', `${sem}_${docId}`);
+        batch.set(ref, {
+          nome: prof.nome,
+          semestre: sem,
+          campus: 'Canindé',
+          grade: prof.grade,
+          disciplinas: prof.disciplinas,
+          total_aulas: prof.total_aulas,
+          atualizado: new Date().toISOString(),
+          fonte: 'pdf_import'
+        });
+      });
+      await batch.commit();
+    }
+
+    log.textContent += `✅ ${professors.length} docentes salvos com sucesso!\n`;
+    toast(`${professors.length} docentes importados para ${sem}`);
+    await loadPublishedStats();
+
+  } catch(e) {
+    log.textContent += `❌ ERRO: ${e.message}\n`;
+    console.error(e);
+  }
+}
+
+function sanitize(name) {
+  return name.replace(/[\/\.#$\[\]]/g, '_');
+}
+
+function extractProfName(items) {
+  // Name is typically the largest text near the top, after the institution header
+  const topItems = items.filter(it => it.y > 500); // PDF y is bottom-up
+  // Find "Horário" line then next distinct item
+  let foundHorario = false;
+  for (const it of topItems.sort((a, b) => b.y - a.y)) {
+    if (it.str.includes('Horário') || it.str.includes('Agosto')) { foundHorario = true; continue; }
+    if (foundHorario && it.str.length > 2 && !it.str.includes('Seg') && !it.str.includes('Instituto') && !it.str.includes('aSc')) {
+      return it.str;
+    }
+  }
+  // Fallback: largest font item
+  const bySize = items.filter(it => it.h > 14 && it.str.length > 2 && !it.str.includes('Instituto') && !it.str.includes('Horário'));
+  if (bySize.length > 0) return bySize.sort((a, b) => b.h - a.h)[0].str;
+  return null;
+}
+
+function extractGradeFromItems(items, page) {
+  // Simplified extraction - gets discipline names and positions
+  // In production, you'd do full spatial mapping
+  const disciplinas = [];
+  const grade = { Segunda: [], Terça: [], Quarta: [], Quinta: [], Sexta: [], Sábado: [] };
+
+  // Extract discipline-like items (contain codes like 10.xxx.xx)
+  const codePattern = /\d+\.\d+\.\d+/;
+  const seenDisc = new Set();
+
+  items.forEach(it => {
+    if (codePattern.test(it.str) && it.str.includes('-')) {
+      const parts = it.str.split('-').map(s => s.trim());
+      const nome = parts[0];
+      const code = parts.slice(1).join('-').trim();
+      if (!seenDisc.has(nome)) {
+        seenDisc.add(nome);
+        disciplinas.push({ nome: nome, turma: '—', ch: 2 });
+      }
+    }
+  });
+
+  // For turma info, look for items like "Eletrônica S2", "Eventos S4", etc
+  const turmaPattern = /^(Eletrônica|Eventos|Turismo|Música|Pedagogia|Matematica|CLEF|ADS|Redes|Informática|Ensino)\s+S\d/;
+  items.forEach(it => {
+    if (turmaPattern.test(it.str)) {
+      // Associate with nearest discipline above
+      // (simplified - just note the turma exists)
+    }
+  });
+
+  return {
+    disciplinas: disciplinas,
+    grade: grade,
+    total_aulas: disciplinas.reduce((s, d) => s + d.ch, 0)
+  };
+}
+
+function loadScript(src, isModule) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    if (isModule) s.type = 'module';
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+</script>
+</body>
+</html>

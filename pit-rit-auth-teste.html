@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PIT/RIT Auth — IFCE Canindé</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--g1:#1B5E20;--g2:#2E7D32;--g3:#43A047;--gbg:#E8F5E9;--gbg2:#C8E6C9;--gd:#0D3B0F;--gold:#F9A825;--blue:#1565C0;--red:#C62828;--bg:#F4F6F4;--card:#FFF;--bdr:#D5DDD5;--txt:#1A2E1A;--txt2:#4A5E4A;--r:8px}
+body{font-family:'Source Sans 3',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);padding:20px}
+.login-box{background:#fff;border-radius:16px;padding:32px;max-width:420px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.08);text-align:center}
+.login-box h2{color:var(--g1);margin-bottom:4px}.login-box p{color:#666;font-size:13px;margin-bottom:20px}
+.btn-google{display:inline-flex;align-items:center;gap:10px;padding:12px 24px;border:2px solid #ddd;background:#fff;border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit;color:#333;transition:all .2s}
+.btn-google:hover{background:#f5f5f5;border-color:var(--g1)}
+.login-error{margin-top:12px;font-size:12px;color:var(--red);display:none}
+.app{display:none}
+.hdr{background:linear-gradient(135deg,var(--gd),var(--g1) 60%,var(--g2));color:#fff;border-bottom:4px solid var(--gold)}
+.hdr-in{max-width:1060px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:14px 20px;flex-wrap:wrap}
+.hdr-t{flex:1}.hdr-t h1{font-size:18px;font-weight:700}.hdr-t p{font-size:12px;opacity:.85;margin-top:2px}
+.hdr-sem{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600}
+.sbar{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:1px solid var(--bdr);padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.sbar-in{max-width:1060px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.si{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--txt2)}
+.sa{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.b{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;font-weight:600;background:var(--gbg);color:var(--g1)}
+.btn{padding:7px 14px;border:1px solid var(--bdr);background:var(--card);border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;color:var(--txt);font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--gbg);border-color:var(--g3)}.btn-p{background:var(--g1);color:#fff;border-color:var(--g1)}.btn-p:hover{background:var(--g2)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.ctn{max-width:1060px;margin:0 auto;padding:12px 16px}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 20px;margin-bottom:12px}
+.ct{font-size:15px;font-weight:700;margin-bottom:3px;color:var(--gd)}.cs{font-size:12px;color:var(--txt2);margin-bottom:12px}
+.sem-selector{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#E3F2FD;border:2px solid #90CAF9;border-radius:var(--r);margin-bottom:14px}
+.sem-selector label{font-size:12px;font-weight:700;color:#0D47A1}
+.sem-selector select{padding:6px 12px;border:1px solid #90CAF9;border-radius:6px;font-size:14px;font-weight:600;font-family:inherit;background:#fff;color:#0D47A1}
+.sem-selector .vigente-tag{font-size:10px;background:#C8E6C9;color:#1B5E20;padding:2px 8px;border-radius:10px;font-weight:600}
+.prof-search{width:100%;padding:10px 12px;border:2px solid var(--gbg2);border-radius:8px;font-size:14px;font-family:inherit}
+.prof-search:focus{outline:none;border-color:var(--g1)}
+.prof-results{max-height:200px;overflow-y:auto;border:1px solid var(--gbg2);border-radius:0 0 8px 8px;background:#fff;margin-top:-2px;display:none}
+.prof-results div{padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid #f0f0f0}
+.prof-results div:hover{background:var(--gbg)}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.fg label{display:block;font-size:11px;color:var(--txt2);margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+input[type="text"],input[type="number"],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-size:13px;color:var(--txt);background:var(--card);font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g1);box-shadow:0 0 0 2px rgba(27,94,32,.12)}
+textarea{resize:vertical;min-height:70px}
+.sync-indicator{font-size:11px;margin-left:8px}
+.ft{margin-top:20px;padding:12px;font-size:10px;color:var(--txt2);text-align:center;border-top:1px solid var(--bdr)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-wrap">
+<div class="login-box">
+<div style="font-size:40px;margin-bottom:12px">📋</div>
+<h2>PIT/RIT — IFCE</h2>
+<p>Faça login com seu email institucional</p>
+<button class="btn-google" onclick="doLogin()">
+<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+Entrar com Google
+</button>
+<div class="login-error" id="loginError"></div>
+<p style="margin-top:16px;font-size:11px;color:#999">Use seu email @ifce.edu.br para acesso completo.</p>
+</div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appMain">
+<div class="hdr"><div class="hdr-in">
+<div class="hdr-t"><h1>Sistema PIT/RIT — IFCE Canindé</h1><p>Plano Individual de Trabalho / Relatório Individual de Trabalho</p></div>
+<div class="hdr-sem" id="hdrSem">—</div>
+</div></div>
+
+<div class="sbar"><div class="sbar-in">
+<div class="si">
+<span>Semestre:</span><span class="b" id="semDisplay">—</span>
+<span style="margin-left:8px" id="userEmail" class="btn-sm" style="font-size:11px;color:var(--txt2)"></span>
+<button class="btn btn-sm" onclick="doLogout()">Sair</button>
+</div>
+<div class="sa">
+<button class="btn btn-p" onclick="syncToFirebase()">☁️ Salvar no Firebase</button>
+<button class="btn" onclick="publishGrade()">📡 Publicar Grade</button>
+<span class="sync-indicator" id="syncIndicator"></span>
+</div>
+</div></div>
+
+<div class="ctn">
+<!-- Seletor de Semestre -->
+<div class="sem-selector">
+<label>📅 Semestre de Trabalho:</label>
+<select id="semSelect" onchange="onSemChange()"></select>
+<span class="vigente-tag" id="vigenteTag" style="display:none">VIGENTE</span>
+<span style="font-size:11px;color:#1565C0;margin-left:auto">O PIT/RIT será salvo vinculado a este semestre</span>
+</div>
+
+<!-- Busca do Professor -->
+<div class="card">
+<div class="ct">Selecione o Professor</div>
+<div class="cs">Digite seu nome e selecione na lista para carregar seus dados do semestre escolhido</div>
+<input type="text" class="prof-search" id="profSearch" placeholder="Digite o nome do professor..." oninput="filterProfs()">
+<div class="prof-results" id="profResults"></div>
+</div>
+
+<!-- Identificação -->
+<div class="card">
+<div class="ct">Identificação do Servidor</div>
+<div class="fg">
+<div><label>Semestre</label><input type="text" id="fs" readonly></div>
+<div><label>Nome completo</label><input type="text" id="fn"></div>
+<div><label>Campus</label><input type="text" id="fc" value="Canindé"></div>
+<div><label>Departamento</label><input type="text" id="fd" value="Ensino"></div>
+<div><label>SIAPE</label><input type="text" id="fi" placeholder="12****"></div>
+<div><label>Vínculo</label><select id="fv"><option value="efetivo">Efetivo</option><option value="substituto">Substituto</option><option value="temporario">Temporário</option></select></div>
+<div><label>Regime</label><select id="fr"><option value="40DE">40h DE</option><option value="40">40h</option><option value="20">20h</option></select></div>
+</div>
+</div>
+
+<!-- Placeholder para as abas restantes do PIT/RIT (Ensino, Pesquisa, Grade, RIT) -->
+<div class="card" style="background:#FFF8E1;border-color:#F9A825">
+<div class="ct" style="color:#E65100">🚧 Módulos do PIT/RIT</div>
+<div class="cs" style="color:#795548">
+As abas de <b>Ensino</b>, <b>Pesquisa/Extensão/Gestão</b>, <b>Grade Semanal</b> e <b>RIT</b> seguem a mesma estrutura do sistema atual (PIT-RIT-IFCE-17-2.html), mas agora cada operação de leitura/escrita no Firebase inclui o campo <code>semestre</code> para segregar os dados.<br><br>
+Para integração completa, copie as abas e lógica do seu arquivo existente e adicione o campo <code>semestre</code> conforme demonstrado nas funções <code>syncToFirebase()</code> e <code>publishGrade()</code> abaixo.
+</div>
+</div>
+
+<div class="ft">IFCE Campus Canindé — Sistema PIT/RIT com Controle de Semestre</div>
+</div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js';
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, writeBatch } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
+
+// ============================================================
+// 🔧 COLE SEU firebaseConfig AQUI (mesmo dos outros)
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyAhaMmUr3MeO4_ctzgBrS5AIG8MehE6cZ8",
+  authDomain: "pit-rit-horarios.firebaseapp.com",
+  projectId: "pit-rit-horarios",
+  storageBucket: "pit-rit-horarios.firebasestorage.app",
+  messagingSenderId: "739278051497",
+  appId: "1:739278051497:web:1fd7f0adabe9e65ea971b8"
+};
+// ============================================================
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+const $ = id => document.getElementById(id);
+
+let currentUser = null;
+let semestreVigente = '';
+let semestreAtual = ''; // semestre selecionado pelo professor
+let semestres = [];
+let profSelecionado = '';
+let profData = null; // dados carregados do Firebase para o prof+semestre
+
+function sanitize(name) { return name.replace(/[\/\.#$\[\]]/g, '_'); }
+
+function showSync(tipo) {
+  const el = $('syncIndicator');
+  if (tipo === 'ok') { el.textContent = '☁️ Salvo'; el.style.color = '#4CAF50'; }
+  else if (tipo === 'enviando') { el.textContent = '⏳ Salvando...'; el.style.color = '#FFA000'; }
+  else { el.textContent = '⚠️ Erro'; el.style.color = '#F44336'; }
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.textContent = '', 4000);
+}
+
+// ===================== AUTH =====================
+window.doLogin = async function() {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    $('loginError').textContent = e.message;
+    $('loginError').style.display = 'block';
+  }
+};
+
+window.doLogout = function() { signOut(auth); };
+
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    currentUser = user;
+    $('loginScreen').style.display = 'none';
+    $('appMain').style.display = 'block';
+    $('userEmail').textContent = user.email;
+    await loadConfig();
+  } else {
+    currentUser = null;
+    $('loginScreen').style.display = 'flex';
+    $('appMain').style.display = 'none';
+  }
+});
+
+// ===================== CONFIG & SEMESTRES =====================
+async function loadConfig() {
+  // Ler vigente
+  try {
+    const statusDoc = await getDoc(doc(db, 'configuracoes', 'status'));
+    if (statusDoc.exists()) semestreVigente = statusDoc.data().vigente || '';
+  } catch(e) { console.warn('Erro lendo vigente:', e); }
+
+  // Ler semestres
+  try {
+    const snap = await getDocs(collection(db, 'semestres'));
+    semestres = [];
+    snap.forEach(d => semestres.push(d.id));
+    semestres.sort((a, b) => b.localeCompare(a));
+  } catch(e) { console.warn('Erro lendo semestres:', e); }
+
+  // Se não tem semestres cadastrados, usar o vigente ou fallback
+  if (semestres.length === 0 && semestreVigente) semestres = [semestreVigente];
+  if (semestres.length === 0) semestres = ['2026.1'];
+
+  // Popular select
+  const sel = $('semSelect');
+  sel.innerHTML = semestres.map(s =>
+    `<option value="${s}" ${s === semestreVigente ? 'selected' : ''}>${s}${s === semestreVigente ? ' (vigente)' : ''}</option>`
+  ).join('');
+
+  semestreAtual = sel.value || semestres[0];
+  updateSemDisplay();
+}
+
+window.onSemChange = function() {
+  semestreAtual = $('semSelect').value;
+  updateSemDisplay();
+  // Se professor já selecionado, recarregar dados do novo semestre
+  if (profSelecionado) loadProfData(profSelecionado);
+};
+
+function updateSemDisplay() {
+  $('fs').value = semestreAtual;
+  $('hdrSem').textContent = semestreAtual;
+  $('semDisplay').textContent = semestreAtual;
+  const tag = $('vigenteTag');
+  if (semestreAtual === semestreVigente) { tag.style.display = 'inline'; tag.textContent = 'VIGENTE'; }
+  else tag.style.display = 'none';
+}
+
+// ===================== BUSCA DE PROFESSOR =====================
+window.filterProfs = function() {
+  const q = $('profSearch').value.trim().toLowerCase();
+  const res = $('profResults');
+  if (q.length < 2) { res.style.display = 'none'; return; }
+
+  // Buscar no Firebase do semestre atual
+  loadProfList(q);
+};
+
+async function loadProfList(query) {
+  const res = $('profResults');
+  try {
+    // Busca todos os horários do semestre e filtra por nome
+    const snap = await getDocs(collection(db, 'horarios'));
+    const names = new Set();
+    snap.forEach(d => {
+      const data = d.data();
+      if (data.nome && data.nome.toLowerCase().includes(query)) {
+        names.add(data.nome);
+      }
+    });
+
+    if (names.size === 0) {
+      res.innerHTML = '<div style="padding:12px;color:#999;font-size:13px">Nenhum professor encontrado. Verifique se os dados foram publicados.</div>';
+    } else {
+      res.innerHTML = Array.from(names).sort((a,b) => a.localeCompare(b,'pt')).slice(0, 15).map(n =>
+        `<div onclick="selectProf('${n.replace(/'/g, "\\'")}')">${n}</div>`
+      ).join('');
+    }
+    res.style.display = 'block';
+  } catch(e) {
+    res.innerHTML = '<div style="padding:12px;color:#C62828;font-size:13px">Erro: ' + e.message + '</div>';
+    res.style.display = 'block';
+  }
+}
+
+window.selectProf = async function(name) {
+  profSelecionado = name;
+  $('profSearch').value = name;
+  $('profResults').style.display = 'none';
+  $('fn').value = name;
+  await loadProfData(name);
+};
+
+async function loadProfData(name) {
+  const docId = `${semestreAtual}_${sanitize(name)}`;
+  try {
+    const snap = await getDoc(doc(db, 'horarios', docId));
+    if (snap.exists()) {
+      profData = snap.data();
+      // Preencher campos com dados do Firebase
+      $('fn').value = profData.nome || name;
+      $('fc').value = profData.campus || 'Canindé';
+      showSync('ok');
+    } else {
+      // Tenta buscar sem prefixo de semestre (compatibilidade)
+      const fallbackSnap = await getDoc(doc(db, 'horarios', sanitize(name)));
+      if (fallbackSnap.exists()) {
+        profData = fallbackSnap.data();
+        $('fn').value = profData.nome || name;
+        $('fc').value = profData.campus || 'Canindé';
+      } else {
+        profData = null;
+      }
+    }
+  } catch(e) {
+    console.error('Erro carregando prof:', e);
+  }
+}
+
+// ===================== SYNC & PUBLISH =====================
+window.syncToFirebase = async function() {
+  if (!profSelecionado) return alert('Selecione um professor primeiro.');
+  if (!currentUser) return alert('Faça login primeiro.');
+
+  showSync('enviando');
+  const docId = `${semestreAtual}_${sanitize(profSelecionado)}`;
+
+  try {
+    await setDoc(doc(db, 'horarios', docId), {
+      nome: profSelecionado,
+      semestre: semestreAtual,
+      campus: $('fc').value || 'Canindé',
+      departamento: $('fd').value,
+      siape: $('fi').value,
+      vinculo: $('fv').value,
+      regime: $('fr').value,
+      // grade, disciplinas, etc. viriam do estado E do PIT completo
+      // Aqui é o esqueleto - integre com a lógica do PIT existente
+      atualizado: new Date().toISOString(),
+      editadoPor: currentUser.email
+    }, { merge: true });
+
+    showSync('ok');
+  } catch(e) {
+    showSync('erro');
+    alert('Erro ao salvar: ' + e.message);
+  }
+};
+
+window.publishGrade = async function() {
+  if (!profSelecionado) return alert('Selecione um professor primeiro.');
+  if (!currentUser) return alert('Faça login primeiro.');
+  if (!confirm(`Publicar grade de ${profSelecionado} para o semestre ${semestreAtual}?`)) return;
+
+  showSync('enviando');
+  const docId = `${semestreAtual}_${sanitize(profSelecionado)}`;
+
+  try {
+    await setDoc(doc(db, 'horarios', docId), {
+      nome: profSelecionado,
+      semestre: semestreAtual,
+      campus: $('fc').value || 'Canindé',
+      // Aqui incluiria grade e disciplinas completas
+      atualizado: new Date().toISOString(),
+      editadoPor: currentUser.email,
+      publicado: true
+    }, { merge: true });
+
+    showSync('ok');
+    alert('Grade publicada com sucesso para ' + semestreAtual + '!');
+  } catch(e) {
+    showSync('erro');
+    alert('Erro: ' + e.message);
+  }
+};
+
+// Salvar SIAPE no perfil do usuário
+$('fi').addEventListener('input', function() {
+  clearTimeout(this._t);
+  const val = this.value;
+  this._t = setTimeout(async () => {
+    if (currentUser && val) {
+      try {
+        await setDoc(doc(db, 'usuarios', currentUser.uid), {
+          siape: val, email: currentUser.email
+        }, { merge: true });
+      } catch(e) { console.warn('Erro salvando SIAPE:', e); }
+    }
+  }, 2000);
+});
+
+</script>
+</body>
+</html>
